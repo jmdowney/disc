@@ -8,12 +8,13 @@ sim <- new_sim()
 # 2. create data ####
 
 ## a. generate "population" of clusters ####
-create_clusters <- function(n, mean, sd) {
+create_clusters <- function(n, sd) {
   
   # generate cluster random effects
-  cluster_effects <- rnorm(n = n, mean = mean, sd = sd) 
+  cluster_effects <- rnorm(n = n, 0, sd = sd) 
   
   # randomly assign half to control half to intervention
+  # maybe to do: change this to take a vector of n/2 0s and n/2 1s and permute randomly
   assignment <- rbinom(n = n, size = 1, prob = 0.5)
   
   # create df including cluster effect, intervention vs control assignment, and cluster ID
@@ -28,13 +29,15 @@ create_clusters <- function(n, mean, sd) {
 }
 
 # test
-dat <- create_clusters(1000, 0, 1)
+dat <- create_clusters(1000, 1)
 
 # visualize
 hist(dat$cluster_effect)
   
 ## b. sample 100 clusters at baseline and endline for each design ####
-sample_clusters <- function(n) {
+sample_clusters <- function(n, design) {
+  
+  # to do: add conditional logic for design = traditional, design = disc
   
   # traditional repeated cross sectional design, baseline
   sample_baseline_traditional <- dat %>% 
@@ -85,7 +88,7 @@ all_sampled_clusters <- sample_clusters(100)
 hist(all_sampled_clusters$cluster_effect)
 
 ## c. sample individuals from each cluster ####
-sample_individuals <- function(n, mean, sd) {
+sample_individuals <- function(n, sd) {
   
   # initialize empty list for individuals
   individual_samples <- list()
@@ -93,7 +96,7 @@ sample_individuals <- function(n, mean, sd) {
   # loop through all sampled clusters to "sample" individuals for each one
   for (individual_matching_id in all_sampled_clusters$individual_matching_id) {
     # generate individual samples
-    samples <- rnorm(n = n, mean = mean, sd = sd)
+    samples <- rnorm(n = n, 0, sd = sd)
     # create df with cluster ID, individual ID, and individual samples
     df <- tibble(individual_matching_id = individual_matching_id, individual_id = 1:n, individual_residual = samples)
     # append to list 
@@ -108,10 +111,10 @@ sample_individuals <- function(n, mean, sd) {
 }
 
 # test
-all_sampled_individuals <- sample_individuals(25, 0, 1)
+all_sampled_individuals <- sample_individuals(25, 1)
 
 # visualize
-hist(all_sampled_individuals$residual)
+hist(all_sampled_individuals$individual_residual)
 
 ## d. join cluster and individual dfs ####
 final_sample <- all_sampled_individuals %>% 
@@ -126,10 +129,12 @@ final_sample <- all_sampled_individuals %>%
 # 4. set simulation levels ####
 
 # to do: these should be different values of cluster-level SD 
-# (+ different values of individual-level SD?)
+# + different designs (traditional vs disc)
+# (+ different values of individual-level SD? -> start with not varying)
 
 # 5. create simulation script ####
 
 # to do
+# keep simple, mostly calls to functions - generate data, analyze data, return data
 
 # 6. run simulation, view, summarize #### 

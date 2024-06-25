@@ -1,7 +1,5 @@
 # 1. setup ####
 library(SimEngine)
-library(tidyverse)
-library(lme4)
 
 # create new simulation #
 sim <- new_sim()
@@ -28,15 +26,9 @@ create_clusters <- function(n, sd) {
   return(dat)
   
 }
-
-# test
-dat <- create_clusters(1000, 1)
-
-# visualize
-hist(dat$cluster_effect)
   
 ## b. sample 100 clusters at baseline and endline for each design ####
-sample_clusters <- function(n, design) {
+sample_clusters <- function(dat, n, design) {
   
   # to do: add conditional logic for design = traditional, design = disc
   if (design == 'traditional') {
@@ -97,14 +89,8 @@ sample_clusters <- function(n, design) {
   }
 }
 
-# test
-all_sampled_clusters <- sample_clusters(100, 'traditional')
-
-# visualize
-hist(all_sampled_clusters$cluster_effect)
-
 ## c. sample individuals from each cluster ####
-sample_individuals <- function(n) {
+sample_individuals <- function(all_sampled_clusters, n) {
   
   # initialize empty list for individuals
   individual_samples <- list()
@@ -126,18 +112,12 @@ sample_individuals <- function(n) {
   
 }
 
-# test
-all_sampled_individuals <- sample_individuals(25)
-
-# visualize
-hist(all_sampled_individuals$individual_residual)
-
 # 3. create model ####
 
 # set values for mean outcome at baseline and follow-up, treatment effect the same;
 # starting with simplest design of mean outcome at baseline and follow-up 
 # among untreated group = 0
-fit_model <- function(te) {
+fit_model <- function(all_sampled_individuals, all_sampled_clusters, te) {
   
   final_sample <- all_sampled_individuals %>% 
     # join individual and cluster level data
@@ -146,18 +126,14 @@ fit_model <- function(te) {
     # calculate outcomes
     mutate(treatment_effect = te) %>% 
     mutate(outcome = 0 + cluster_effect + treatment_effect*intervention + individual_residual)
-  
+
   # fit random effects model 
   model <- lmer(outcome ~ intervention*time + (1 | cluster_id), data = final_sample)
-  
   # get estimate of intervention effect
   summary <- summary(model)
-  return(summary$coefficients[2,1])
+  return(summary$coefficients[4,1])
   
 }
-
-# test
-summary <- fit_model(1)
 
 # 4. set simulation levels ####
 
@@ -165,16 +141,27 @@ summary <- fit_model(1)
 sim %<>% set_levels(
   sd = c(1, 2, 3),
   design = c("traditional","disc"),
-  treatment_effect = c(1, 2, 3)
+  te = c(1, 2, 3)
 )
 
 # 5. create simulation script ####
 sim %<>% set_script(function() {
   dat <- create_clusters(1000, sd = L$sd)
-  all_sampled_clusters <- sample_clusters(100, design = L$design)
-  variance <- fit_model(te = L$te)
-  return (list("variance"=variance))
+  all_sampled_clusters <- sample_clusters(dat, 100, design = L$design)
+  all_sampled_individuals <- sample_individuals(all_sampled_clusters, 25)
+  estimate <- fit_model(all_sampled_individuals, all_sampled_clusters, te = L$te)
+  return (list("estimate"=estimate))
 })
+
+sim %<>% set_config(
+  num_sim = 10,
+  packages = c("tidyverse", "lme4")
+)
 
 # 6. run simulation, view, summarize #### 
 sim %<>% run()
+sim %>% SimEngine::summarize(
+  list(stat = "sd", x = "estimate")
+)
+
+

@@ -30,7 +30,7 @@ create_clusters <- function(n, sd) {
 ## b. sample 100 clusters at baseline and endline for each design ####
 sample_clusters <- function(dat, n, design) {
   
-  # to do: add conditional logic for design = traditional, design = disc
+  # separate designs for traditional RCS vs DISC
   if (design == 'traditional') {
     
     # traditional repeated cross sectional design, baseline
@@ -139,7 +139,7 @@ fit_model <- function(all_sampled_individuals, all_sampled_clusters, te) {
 
 # different values of cluster-level SD + different designs (traditional vs disc)
 sim %<>% set_levels(
-  sd = c(1, 2, 3),
+  sd = c(1, 1.5, 2, 2.5, 3),
   design = c("traditional","disc"),
   te = c(1, 2, 3)
 )
@@ -154,14 +154,27 @@ sim %<>% set_script(function() {
 })
 
 sim %<>% set_config(
-  num_sim = 10,
-  packages = c("tidyverse", "lme4")
+  num_sim = 100,
+  packages = c("tidyverse", "lme4", "stringr")
 )
 
-# 6. run simulation, view, summarize #### 
+# 6. run simulation, summarize #### 
 sim %<>% run()
 sim %>% SimEngine::summarize(
   list(stat = "sd", x = "estimate")
 )
 
+# 7. viz ####
+(results <- sim %>% 
+   SimEngine::summarize(
+     list(stat = "sd", x = "estimate")
+   ) %>% 
+  filter(te == 1) %>% 
+  ggplot(aes(sd, sd_estimate, fill = design)) + 
+   geom_bar(stat = 'identity', position = 'dodge') +
+   xlab('Cluster-level standard deviation') +
+   ylab('Estimated total standard deviation') + 
+   labs(title = str_wrap('Estimated total standard deviation under traditional RCS and DISC designs, for different values of cluster-level standard deviation', 60)) +
+   scale_fill_discrete(name = 'Design'))
 
+ 

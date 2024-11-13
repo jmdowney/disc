@@ -82,23 +82,16 @@ for (design in c("RCS", "Cohort", "DISC")) {
   }
   
   # Set sampled individuals
-  # cl<-1; c(1,2,3)+6*(cl-1);
   df_pop$Sampled <- F
   if (design=="RCS") {
-    # inds_t1 <- c(7,8,9,19,20,21)
-    # inds_t2 <- c(37,38,39,49,50,51)
     inds_t1 <- c(7,10,12,20,21,23)
     inds_t2 <- c(37,38,42,50,51,54)
     title <- "(a) RCS sample"
   } else if (design=="Cohort") {
-    # inds_t1 <- c(1,2,3,31,32,33)
-    # inds_t2 <- inds_t1 + 36
     inds_t1 <- c(1,4,5,31,33,36)
     inds_t2 <- c(37,40,41,67,69,72)
     title <- "(b) Cohort sample"
   } else if (design=="DISC") {
-    # inds_t1 <- c(1,2,3,31,32,33)
-    # inds_t2 <- inds_t1 + 38
     inds_t1 <- c(1,4,5,31,33,36)
     inds_t2 <- c(38,40,42,68,69,71)
     title <- "(c) DISC sample"
@@ -128,7 +121,6 @@ for (design in c("RCS", "Cohort", "DISC")) {
       panel.grid.minor.x = element_blank(),
       panel.grid.major.y = element_blank(),
       panel.grid.minor.y = element_blank(),
-      # plot.background = element_rect(color = "black"),
       plot.margin = unit(c(5,10,5,10), "pt"),
       legend.position = "bottom"
     ) +

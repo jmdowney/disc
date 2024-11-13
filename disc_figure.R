@@ -4,8 +4,8 @@ library(ggplot2)
 library(ggpubr)
 library(grid)
 
-set.seed(15)
-cfg <- list(save=F)
+set.seed(5)
+cfg <- list(save=T)
 df_pop <- data.frame(
   "x" = double(),
   "y" = double(),
@@ -28,10 +28,37 @@ pad <- 0.03
 for (i in c(1:nrow(df_rect))) {
   brd <- df_rect[i,]
   for (j in c(1:6)) {
-    x <- runif(n=1, min=brd$xmin+pad, max=brd$xmax-pad)
-    y <- runif(n=1, min=brd$ymin+pad, max=brd$ymax-pad)
+    
+    x_diff <- (brd$xmax-brd$xmin)/2
+    y_diff <- (brd$ymax-brd$ymin)/3
+    
+    if (j %in% c(1,3,5)) {
+      min_x <- brd$xmin
+      max_x <- brd$xmin+x_diff
+    } else {
+      min_x <- brd$xmin+x_diff
+      max_x <- brd$xmin+(x_diff*2)
+    }
+    if (j %in% c(1,2)) {
+      min_y <- brd$ymin
+      max_y <- brd$ymin+y_diff
+    } else if (j %in% c(3,4)) {
+      min_y <- brd$ymin+y_diff
+      max_y <- brd$ymin+(y_diff*2)
+    } else if (j %in% c(5,6)) {
+      min_y <- brd$ymin+(y_diff*2)
+      max_y <- brd$ymin+(y_diff*3)
+    }
+    min_x <- min_x+pad
+    min_y <- min_y+pad
+    max_x <- max_x-pad
+    max_y <- max_y-pad
+    
+    x <- runif(n=1, min=min_x, max=max_x)
+    y <- runif(n=1, min=min_y, max=max_y)
     df_pop[row,] <- list(x, y, "Time 1", F)
     row <- row + 1
+    
   }
 }
 
@@ -58,14 +85,23 @@ for (design in c("RCS", "Cohort", "DISC")) {
   # cl<-1; c(1,2,3)+6*(cl-1);
   df_pop$Sampled <- F
   if (design=="RCS") {
-    inds_t1 <- c(7,8,9,19,20,21)
-    inds_t2 <- c(37,38,39,49,50,51)
+    # inds_t1 <- c(7,8,9,19,20,21)
+    # inds_t2 <- c(37,38,39,49,50,51)
+    inds_t1 <- c(7,10,12,20,21,23)
+    inds_t2 <- c(37,38,42,50,51,54)
+    title <- "(a) RCS sample"
   } else if (design=="Cohort") {
-    inds_t1 <- c(1,2,3,31,32,33)
-    inds_t2 <- inds_t1 + 36
+    # inds_t1 <- c(1,2,3,31,32,33)
+    # inds_t2 <- inds_t1 + 36
+    inds_t1 <- c(1,4,5,31,33,36)
+    inds_t2 <- c(37,40,41,67,69,72)
+    title <- "(b) Cohort sample"
   } else if (design=="DISC") {
-    inds_t1 <- c(1,2,3,31,32,33)
-    inds_t2 <- inds_t1 + 38
+    # inds_t1 <- c(1,2,3,31,32,33)
+    # inds_t2 <- inds_t1 + 38
+    inds_t1 <- c(1,4,5,31,33,36)
+    inds_t2 <- c(38,40,42,68,69,71)
+    title <- "(c) DISC sample"
   }
   df_pop[c(inds_t1,inds_t2),"Sampled"] <- T
   
@@ -78,7 +114,7 @@ for (design in c("RCS", "Cohort", "DISC")) {
       linewidth = 0.5,
       alpha = 0.3
     ) +
-    geom_point(aes(shape=Sampled), size=2) +
+    geom_point(aes(shape=Sampled), size=3) +
     scale_linetype_manual(values=c("dotted", "solid")) +
     scale_shape_manual(values=c(1, 19)) +
     scale_fill_manual(values=c("salmon", "forestgreen")) +
@@ -96,7 +132,7 @@ for (design in c("RCS", "Cohort", "DISC")) {
       plot.margin = unit(c(5,10,5,10), "pt"),
       legend.position = "bottom"
     ) +
-    labs(x=NULL, y=NULL, title=design) +
+    labs(x=NULL, y=NULL, title=title) +
     facet_grid(rows=dplyr::vars(time))
   
   assign(paste0("plot_", design), plot)

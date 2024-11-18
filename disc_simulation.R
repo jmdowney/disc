@@ -1,6 +1,5 @@
 # 1. setup ####
 library(SimEngine)
-C <- list(n=25, m=2500)
 
 # 2. create data ####
 
@@ -29,7 +28,7 @@ create_clusters <- function(n, sd) {
 sample_clusters <- function(dat, n, design) {
   
   # separate designs for traditional RCS vs DISC
-  if (design == 'traditional') {
+  if (design == 'Traditional RCS') {
     
     # traditional repeated cross sectional design, baseline
     sample_baseline <- dat %>% 
@@ -52,11 +51,11 @@ sample_clusters <- function(dat, n, design) {
     ) %>% 
       # add another ID, to match individuals to clusters
       tibble::rowid_to_column("individual_matching_id")  %>% 
-      mutate(design = 'traditional')
+      mutate(design = 'Traditional RCS')
     
     return(all_sampled_clusters)
     
-  } else if (design == 'disc') {
+  } else if (design == 'DISC') {
     
     # DISC design, baseline
     sample_baseline <- dat %>% 
@@ -76,13 +75,13 @@ sample_clusters <- function(dat, n, design) {
     ) %>% 
       # add another ID, to match individuals to clusters
       tibble::rowid_to_column("individual_matching_id") %>% 
-      mutate(design = 'disc')
+      mutate(design = 'DISC')
     
     return(all_sampled_clusters)
     
   } else {
     
-    stop("design can only be 'traditional' or 'disc'")
+    stop("design can only be 'Traditional RCS' or 'DISC'")
     
   }
 }
@@ -115,7 +114,7 @@ sample_individuals <- function(all_sampled_clusters, n) {
 # set values for mean outcome at baseline and follow-up, treatment effect the same;
 # starting with simplest design of mean outcome at baseline and follow-up 
 # among untreated group = 0
-fit_model <- function(all_sampled_individuals, all_sampled_clusters, te) {
+fit_model <- function(all_sampled_individuals, all_sampled_clusters, te = 1) {
   
   final_sample <- all_sampled_individuals %>% 
     # join individual and cluster level data
@@ -125,20 +124,27 @@ fit_model <- function(all_sampled_individuals, all_sampled_clusters, te) {
     mutate(treatment_effect = te) %>% 
     mutate(outcome = 0 + cluster_effect + treatment_effect*intervention + individual_residual)
   
-  # outcome_t2 <- final_sample %>% 
-  #   filter(time == 1) %>% 
-  #   summarize(mean_outcome_t2 = mean(outcome))
-  # outcome_t1 <- final_sample %>% 
-  #   filter(time == 0) %>% 
-  #   summarize(mean_outcome_t1 = mean(outcome))
-  # 
-  # return(outcome_t2[[1]] - outcome_t1[[1]])
-  
-  # fit random effects model 
+  # fit model 
   model <- lm(outcome ~ intervention*time, data = final_sample)
   # get estimate of intervention effect
   summary <- summary(model)
   return(summary$coefficients[4,1])
+  
+}
+
+# get SD from ICC 
+get_sd <- function(icc) {
+  
+  sd <- sqrt(icc/(1-icc))
+  return(sd)
+  
+}
+
+# get ICC from SD 
+get_icc <- function(sd) {
+  
+  icc <- sd^2/(sd^2 + 1)
+  return(icc)
   
 }
 
@@ -147,26 +153,25 @@ fit_model <- function(all_sampled_individuals, all_sampled_clusters, te) {
 # create new simulation #
 sim <- new_sim()
 
-# different values of cluster-level SD + different designs (traditional vs disc)
+# different values of ICC + different designs (traditional vs disc)
 sim %<>% set_levels(
-  # to do: change sd to icc
-  sd = c(1, 5, 20),
-  design = c("traditional", "disc"),
-  te = c(1, 2, 3)
+  icc = seq(from = 0, to = 0.2, by = 0.05),
+  design = c("Traditional RCS", "DISC"),
+  n_clusters = seq(from = 10, to = 100, by = 10)
 )
 
 # 5. create simulation script ####
 sim %<>% set_script(function() {
-  dat <- create_clusters(1000, sd = L$sd)
-  all_sampled_clusters <- sample_clusters(dat, 100, design = L$design)
+  sd <- get_sd(icc = L$icc)
+  dat <- create_clusters(1000, sd)
+  all_sampled_clusters <- sample_clusters(dat, L$n_clusters, design = L$design)
   all_sampled_individuals <- sample_individuals(all_sampled_clusters, 25)
-  estimate <- fit_model(all_sampled_individuals, all_sampled_clusters, te = L$te)
-  # to do: new function for sd <> icc
-  return (list("estimate"=estimate))
+  estimate <- fit_model(all_sampled_individuals, all_sampled_clusters, te = 1)
+  return (list("estimate"=estimate, "sd"=sd))
 })
 
 sim %<>% set_config(
-  num_sim = 100,
+  num_sim = 1000,
   packages = c("tidyverse", "lme4", "stringr")
 )
 
@@ -177,20 +182,80 @@ sim %>% SimEngine::summarize(
 )
 
 # 7. viz ####
+
+# initial simulation results
 (results <- sim %>% 
    SimEngine::summarize(
      list(stat = "sd", x = "estimate")
    ) %>% 
-  filter(te == 1) %>% 
-  ggplot(aes(sd, sd_estimate, fill = design)) + 
-   geom_bar(stat = 'identity', position = 'dodge') +
-   xlab('Cluster-level standard deviation') +
+  filter(n_clusters == 100) %>% 
+  ggplot(aes(icc, sd_estimate, color = design)) + 
+   geom_line() +
+   xlab('Intraclass correlation coefficient') +
    ylab('Estimated total standard deviation') + 
-   labs(title = str_wrap('Estimated total standard deviation under traditional RCS and DISC designs, for different values of cluster-level standard deviation', 60)) +
-   scale_fill_discrete(name = 'Design'))
+   labs(title = str_wrap('Estimated total standard deviation under traditional RCS and DISC designs, for different values of intraclass correlation coefficient', 60)) +
+   scale_fill_discrete(name = 'Design')
+ )
 
-# to do: rescale x axis to ICC, range from 0 (in which case designs should lead to same variance) to 0.2
-# for fixed sigma of 1, calculate tau
-# make line graph rather than bar
+# analytical, assuming m = 25
+n <- sim$levels$n_clusters*25
+icc <- sim$levels$icc
 
- 
+analytical_disc <- expand.grid(n = n, icc = icc) %>% 
+  mutate(var = 8/n,
+         method = 'Analytical',
+         design = 'DISC')
+
+analytical_rcs <- expand.grid(n = n, icc = icc) %>% 
+  mutate(var = 8*( 25*((get_sd(icc))^2) + 1)/n,
+         method = 'Analytical',
+         design = 'Traditional RCS')
+
+# compare simulation results and analytical calculations for ICC = 0.2
+(results <- sim %>% 
+  SimEngine::summarize(
+    list(stat = "sd", x = "estimate")
+    ) %>% 
+  mutate(n = n_clusters*25,
+         var = sd_estimate^2,
+         method = 'Simulation') %>% 
+  select(n, icc, var, method, design) %>% 
+  rbind(analytical_disc) %>%
+  rbind(analytical_rcs) %>% 
+  filter(icc == 0.2) %>% 
+    ggplot(aes(n, var, linetype = method)) + 
+    geom_line() +
+    facet_wrap(vars(design)) +
+    xlab('Total individuals (n)') +
+    ylab('Total variance') + 
+    labs(title = str_wrap('Estimated total variance under DISC and traditional RCS designs, comparing empirical and theoretical variance', 60),
+         linetype = 'Method') 
+)
+
+# analytical, varying m, assuming 100 clusters
+m <- c(10, 100)
+icc <- sim$levels$icc
+
+analytical_disc_varying_m <- expand.grid(m = m, icc = icc) %>% 
+  mutate(var = 8/(m*100),
+         method = 'Analytical',
+         design = 'DISC')
+
+analytical_rcs_varying_m <- expand.grid(m = m, icc = icc) %>% 
+  mutate(var = 8*(m*(get_sd(icc)^2) + 1)/(m*100),
+         method = 'Analytical',
+         design = 'Traditional RCS')
+
+# compare designs for analytical calculations across different ICC values
+custom_labels <- c("10" = "10 individuals\nper cluster", "100" = "100 individuals\nper cluster")
+(analytical_varying_m <- analytical_disc_varying_m %>% 
+  rbind(analytical_rcs_varying_m) %>% 
+    ggplot(aes(icc, var, linetype = design)) +
+    geom_line() +
+    facet_wrap(~ m, labeller = as_labeller(custom_labels)) + 
+    xlab('ICC') +
+    ylab('Total variance') + 
+    labs(title = str_wrap('Total analytical variance, comparing DISC and traditional RCS designs', 60),
+         linetype = 'Design') 
+)
+  

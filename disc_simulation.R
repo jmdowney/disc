@@ -1,8 +1,6 @@
 # 1. setup ####
 library(SimEngine)
-
-# create new simulation #
-sim <- new_sim()
+C <- list(n=25, m=2500)
 
 # 2. create data ####
 
@@ -126,9 +124,18 @@ fit_model <- function(all_sampled_individuals, all_sampled_clusters, te) {
     # calculate outcomes
     mutate(treatment_effect = te) %>% 
     mutate(outcome = 0 + cluster_effect + treatment_effect*intervention + individual_residual)
-
+  
+  # outcome_t2 <- final_sample %>% 
+  #   filter(time == 1) %>% 
+  #   summarize(mean_outcome_t2 = mean(outcome))
+  # outcome_t1 <- final_sample %>% 
+  #   filter(time == 0) %>% 
+  #   summarize(mean_outcome_t1 = mean(outcome))
+  # 
+  # return(outcome_t2[[1]] - outcome_t1[[1]])
+  
   # fit random effects model 
-  model <- lmer(outcome ~ intervention*time + (1 | cluster_id), data = final_sample)
+  model <- lm(outcome ~ intervention*time, data = final_sample)
   # get estimate of intervention effect
   summary <- summary(model)
   return(summary$coefficients[4,1])
@@ -137,10 +144,14 @@ fit_model <- function(all_sampled_individuals, all_sampled_clusters, te) {
 
 # 4. set simulation levels ####
 
+# create new simulation #
+sim <- new_sim()
+
 # different values of cluster-level SD + different designs (traditional vs disc)
 sim %<>% set_levels(
-  sd = c(1, 1.5, 2, 2.5, 3),
-  design = c("traditional","disc"),
+  # to do: change sd to icc
+  sd = c(1, 5, 20),
+  design = c("traditional", "disc"),
   te = c(1, 2, 3)
 )
 
@@ -150,6 +161,7 @@ sim %<>% set_script(function() {
   all_sampled_clusters <- sample_clusters(dat, 100, design = L$design)
   all_sampled_individuals <- sample_individuals(all_sampled_clusters, 25)
   estimate <- fit_model(all_sampled_individuals, all_sampled_clusters, te = L$te)
+  # to do: new function for sd <> icc
   return (list("estimate"=estimate))
 })
 
@@ -176,5 +188,9 @@ sim %>% SimEngine::summarize(
    ylab('Estimated total standard deviation') + 
    labs(title = str_wrap('Estimated total standard deviation under traditional RCS and DISC designs, for different values of cluster-level standard deviation', 60)) +
    scale_fill_discrete(name = 'Design'))
+
+# to do: rescale x axis to ICC, range from 0 (in which case designs should lead to same variance) to 0.2
+# for fixed sigma of 1, calculate tau
+# make line graph rather than bar
 
  

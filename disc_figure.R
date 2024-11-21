@@ -146,7 +146,7 @@ if (cfg$save) {
     filename = "design_plot.pdf",
     plot = p_combined,
     device = "pdf",
-    width = 8,
+    width = 9,
     height = 5
   )
 }

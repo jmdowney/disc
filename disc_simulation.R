@@ -1,7 +1,7 @@
 # 1. setup ####
 library(SimEngine)
 
-# 2. create data ####
+# 2. create data & helper functions ####
 
 ## a. generate "population" of clusters ####
 create_clusters <- function(n, sd) {
@@ -24,7 +24,7 @@ create_clusters <- function(n, sd) {
   
 }
   
-## b. sample 100 clusters at baseline and endline for each design ####
+## b. sample clusters at baseline and endline for each design ####
 sample_clusters <- function(dat, n, design) {
   
   # separate designs for traditional RCS vs DISC
@@ -109,6 +109,24 @@ sample_individuals <- function(all_sampled_clusters, n) {
   
 }
 
+## d. helper functions ####
+
+# get SD from ICC 
+get_sd <- function(icc) {
+  
+  sd <- sqrt(icc/(1-icc))
+  return(sd)
+  
+}
+
+# get ICC from SD 
+get_icc <- function(sd) {
+  
+  icc <- sd^2/(sd^2 + 1)
+  return(icc)
+  
+}
+
 # 3. create model ####
 
 # set values for mean outcome at baseline and follow-up, treatment effect the same;
@@ -129,22 +147,6 @@ fit_model <- function(all_sampled_individuals, all_sampled_clusters, te = 1) {
   # get estimate of intervention effect
   summary <- summary(model)
   return(summary$coefficients[4,1])
-  
-}
-
-# get SD from ICC 
-get_sd <- function(icc) {
-  
-  sd <- sqrt(icc/(1-icc))
-  return(sd)
-  
-}
-
-# get ICC from SD 
-get_icc <- function(sd) {
-  
-  icc <- sd^2/(sd^2 + 1)
-  return(icc)
   
 }
 
@@ -175,11 +177,13 @@ sim %<>% set_config(
   packages = c("tidyverse", "lme4", "stringr")
 )
 
-# 6. run simulation, summarize #### 
+# 6. run simulation, summarize, save #### 
 sim %<>% run()
 sim %>% SimEngine::summarize(
   list(stat = "sd", x = "estimate")
 )
+
+save(sim, file = "simulation_results.RData")
 
 # 7. viz ####
 
@@ -224,7 +228,7 @@ analytical_rcs <- expand.grid(n = n, icc = icc) %>%
   rbind(analytical_rcs) %>% 
   filter(icc == 0.2) %>% 
     ggplot(aes(n, var, linetype = method)) + 
-    geom_line() +
+    geom_line(position = position_jitter(w=0, h=0.02)) +
     facet_wrap(vars(design)) +
     xlab('Total individuals (n)') +
     ylab('Total variance') + 

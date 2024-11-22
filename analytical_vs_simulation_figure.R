@@ -29,7 +29,7 @@ analytical_rcs <- expand.grid(n = n, icc = icc) %>%
          design = 'Traditional RCS')
 
 # 3. create figure to compare simulation results and analytical calculations for ICC = 0.2 ####
-(results <- sim %>% 
+(analytical_vs_simulation_figure <- sim %>% 
     SimEngine::summarize(
       list(stat = "sd", x = "estimate")
     ) %>% 
@@ -45,9 +45,12 @@ analytical_rcs <- expand.grid(n = n, icc = icc) %>%
     facet_wrap(vars(design)) +
     xlab('Total individuals (n)') +
     ylab('Total variance') + 
-    labs(title = str_wrap('Estimated total variance under DISC and traditional RCS designs, comparing empirical and theoretical variance', 60),
+    labs(title = str_wrap('Estimated total variance under DISC and traditional RCS designs, comparing empirical and theoretical variance'),
          linetype = 'Method') 
 )
 
 # 4. save figure ####
-ggsave("analytical_vs_simulation_figure.pdf")
+ggsave("analytical_vs_simulation_figure.pdf", 
+       plot = analytical_vs_simulation_figure, 
+       width = 9, 
+       height = 5)

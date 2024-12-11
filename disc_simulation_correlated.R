@@ -21,8 +21,8 @@ create_clusters <- function(n, sd, mean) {
       tibble::rowid_to_column("cluster_id")
     
     return(dat)
-  
-  # if mean = 'uncorrelated':
+    
+    # if mean = 'uncorrelated':
   } else if (mean == 'uncorrelated') {
     
     # randomly assign half to control half to treatment
@@ -44,7 +44,7 @@ create_clusters <- function(n, sd, mean) {
     
   }
 }
-  
+
 ## b. sample clusters at baseline and endline for each design ####
 sample_clusters <- function(dat, n, design) {
   
@@ -57,7 +57,7 @@ sample_clusters <- function(dat, n, design) {
       group_by(intervention) %>% 
       slice_sample(n = n/2) %>% 
       mutate(time = 0)
-  
+    
     # traditional repeated cross sectional design, endline
     sample_endline <- dat %>% 
       # ensure half of clusters sampled are intervention and half control
@@ -186,7 +186,7 @@ sim %<>% set_levels(
 # 5. create simulation script ####
 sim %<>% set_script(function() {
   sd <- get_sd(icc = L$icc)
-  dat <- create_clusters(1000, sd, mean = 'uncorrelated')
+  dat <- create_clusters(1000, sd, mean = 'correlated')
   all_sampled_clusters <- sample_clusters(dat, L$n_clusters, design = L$design)
   all_sampled_individuals <- sample_individuals(all_sampled_clusters, 25)
   estimate <- fit_model(all_sampled_individuals, all_sampled_clusters, te = 1)
@@ -194,94 +194,15 @@ sim %<>% set_script(function() {
 })
 
 sim %<>% set_config(
-  num_sim = 1000,
+  num_sim = 10,
   packages = c("tidyverse", "lme4", "stringr")
 )
 
 # 6. run simulation, summarize, save #### 
 sim %<>% run()
 sim %>% SimEngine::summarize(
-  list(stat = "sd", x = "estimate")
+  list(stat = "bias", estimate = "estimate", truth = 1)
 )
 
-save(sim, file = "simulation_results.RData")
+save(sim, file = "simulation_results_correlated.RData")
 
-# 7. viz ####
-
-# initial simulation results
-(results <- sim %>% 
-   SimEngine::summarize(
-     list(stat = "sd", x = "estimate")
-   ) 
- %>% 
-  filter(n_clusters == 100) %>% 
-  ggplot(aes(icc, sd_estimate, color = design)) + 
-   geom_line() +
-   xlab('Intraclass correlation coefficient') +
-   ylab('Estimated total standard deviation') + 
-   labs(title = str_wrap('Estimated total standard deviation under traditional RCS and DISC designs, for different values of intraclass correlation coefficient', 60)) +
-   scale_fill_discrete(name = 'Design')
- )
-
-# analytical, assuming m = 25
-n <- sim$levels$n_clusters*25
-icc <- sim$levels$icc
-
-analytical_disc <- expand.grid(n = n, icc = icc) %>% 
-  mutate(var = 8/n,
-         method = 'Analytical',
-         design = 'DISC')
-
-analytical_rcs <- expand.grid(n = n, icc = icc) %>% 
-  mutate(var = 8*( 25*((get_sd(icc))^2) + 1)/n,
-         method = 'Analytical',
-         design = 'Traditional RCS')
-
-# compare simulation results and analytical calculations for ICC = 0.2
-(results <- sim %>% 
-  SimEngine::summarize(
-    list(stat = "sd", x = "estimate")
-    ) %>% 
-  mutate(n = n_clusters*25,
-         var = sd_estimate^2,
-         method = 'Simulation') %>% 
-  select(n, icc, var, method, design) %>% 
-  rbind(analytical_disc) %>%
-  rbind(analytical_rcs) %>% 
-  filter(icc == 0.2) %>% 
-    ggplot(aes(n, var, linetype = method)) + 
-    geom_line(position = position_jitter(w=0, h=0.02)) +
-    facet_wrap(vars(design)) +
-    xlab('Total individuals (n)') +
-    ylab('Total variance') + 
-    labs(title = str_wrap('Estimated total variance under DISC and traditional RCS designs, comparing empirical and theoretical variance', 60),
-         linetype = 'Method') 
-)
-
-# analytical, varying m, assuming 100 clusters
-m <- c(10, 100)
-icc <- sim$levels$icc
-
-analytical_disc_varying_m <- expand.grid(m = m, icc = icc) %>% 
-  mutate(var = 8/(m*100),
-         method = 'Analytical',
-         design = 'DISC')
-
-analytical_rcs_varying_m <- expand.grid(m = m, icc = icc) %>% 
-  mutate(var = 8*(m*(get_sd(icc)^2) + 1)/(m*100),
-         method = 'Analytical',
-         design = 'Traditional RCS')
-
-# compare designs for analytical calculations across different ICC values
-custom_labels <- c("10" = "10 individuals\nper cluster", "100" = "100 individuals\nper cluster")
-(analytical_varying_m <- analytical_disc_varying_m %>% 
-  rbind(analytical_rcs_varying_m) %>% 
-    ggplot(aes(icc, var, linetype = design)) +
-    geom_line() +
-    facet_wrap(~ m, labeller = as_labeller(custom_labels)) + 
-    xlab('ICC') +
-    ylab('Total variance') + 
-    labs(title = str_wrap('Total analytical variance, comparing DISC and traditional RCS designs', 60),
-         linetype = 'Design') 
-)
-  

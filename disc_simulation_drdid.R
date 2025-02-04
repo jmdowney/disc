@@ -154,21 +154,32 @@ get_icc <- function(sd) {
 # set values for mean outcome at baseline and follow-up, treatment effect the same;
 # starting with simplest design of mean outcome at baseline and follow-up 
 # among untreated group = 0
-fit_model <- function(all_sampled_individuals, all_sampled_clusters, te = 1) {
-  
-  final_sample <- all_sampled_individuals %>% 
+fit_model <- function(all_sampled_individuals, all_sampled_clusters, te = 1, binary_effect = 0.5, uniform_effect = 0.3) {
+    
+    # generate covariates
+    binary_covariate <- rbinom(nrow(all_sampled_individuals), size = 1, prob = 0.5)
+    uniform_covariate <- runif(nrow(all_sampled_individuals), min = 0, max = 1 )
+    
+    final_sample <- all_sampled_individuals %>% 
     # join individual and cluster level data
     left_join(all_sampled_clusters, by = 'individual_matching_id') %>% 
     select(-individual_matching_id) %>% 
     # calculate outcomes
     mutate(treatment_effect = te) %>% 
-    mutate(outcome = 0 + cluster_effect + treatment_effect*intervention*time + individual_residual)
+    mutate(outcome = 0 + cluster_effect + treatment_effect*intervention*time + 
+             time + binary_effect*binary_covariate + 
+             uniform_effect*uniform_covariate + individual_residual) %>% 
+    # add covariates to final sample df
+    mutate(binary_covariate = binary_covariate,
+           uniform_covariate = uniform_covariate)
   
   # fit model 
   invisible(model <- drdid_rc(y = final_sample$outcome,
                     post = final_sample$time,
                     D = final_sample$intervention,
-                    covariates = NULL))
+                    covariates = final_sample[, c("binary_covariate", "uniform_covariate")]
+                    )
+            )
   # get estimate of intervention effect
   return(model$ATT)
   
@@ -181,9 +192,9 @@ sim <- new_sim()
 
 # different values of ICC + different designs (traditional vs disc)
 sim %<>% set_levels(
-  icc = seq(from = 0, to = 0.2, by = 0.1),
+  icc = seq(from = 0, to = 0.2, by = 0.05),
   design = c("Traditional RCS", "DISC"),
-  n_clusters = seq(from = 10, to = 100, by = 30)
+  n_clusters = seq(from = 10, to = 100, by = 10)
 )
 
 # 5. create simulation script ####
@@ -197,17 +208,18 @@ sim %<>% set_script(function() {
 })
 
 sim %<>% set_config(
-  num_sim = 100,
+  num_sim = 1000,
   packages = c("tidyverse", "lme4", "stringr")
 )
 
 # 6. run simulation, summarize, save #### 
-sim %<>% run()
-sim %>% SimEngine::summarize(
+sim %<>% run() 
+sim_drdid <- sim 
+sim_drdid %>% SimEngine::summarize(
   list(stat = "sd", x = "estimate")
 )
 
-save(sim, file = "simulation_drdid_results.RData")
+save(sim_drdid, file = "simulation_drdid_results.RData")
 
 # 7. viz ####
 
@@ -253,7 +265,7 @@ analytical_rcs <- expand.grid(n = n, icc = icc) %>%
     rbind(analytical_rcs) %>% 
     filter(icc == 0.2) %>% 
     ggplot(aes(n, var, linetype = method)) + 
-    geom_line(position = position_jitter(w=0, h=0.02)) +
+    geom_line(position = position_jitter(w=0, h=0.002)) +
     facet_wrap(vars(design)) +
     xlab('Total individuals (n)') +
     ylab('Total variance') + 

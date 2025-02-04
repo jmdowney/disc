@@ -161,7 +161,7 @@ fit_model <- function(all_sampled_individuals, all_sampled_clusters, te = 1) {
     select(-individual_matching_id) %>% 
     # calculate outcomes
     mutate(treatment_effect = te) %>% 
-    mutate(outcome = 0 + cluster_effect + treatment_effect*intervention + individual_residual)
+    mutate(outcome = 0 + cluster_effect + treatment_effect*intervention*time + time + individual_residual)
   
   # fit model 
   model <- lm(outcome ~ intervention*time, data = final_sample)
@@ -200,11 +200,12 @@ sim %<>% set_config(
 
 # 6. run simulation, summarize, save #### 
 sim %<>% run()
-sim %>% SimEngine::summarize(
+sim_lm <- sim
+sim_lm %>% SimEngine::summarize(
   list(stat = "sd", x = "estimate")
 )
 
-save(sim, file = "simulation_results.RData")
+save(sim_lm, file = "simulation_results.RData")
 
 # 7. viz ####
 
@@ -250,7 +251,7 @@ analytical_rcs <- expand.grid(n = n, icc = icc) %>%
   rbind(analytical_rcs) %>% 
   filter(icc == 0.2) %>% 
     ggplot(aes(n, var, linetype = method)) + 
-    geom_line(position = position_jitter(w=0, h=0.02)) +
+    geom_line(position = position_jitter(w=0, h=0.002)) +
     facet_wrap(vars(design)) +
     xlab('Total individuals (n)') +
     ylab('Total variance') + 

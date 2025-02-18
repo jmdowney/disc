@@ -1,5 +1,6 @@
 # 1. setup ####
 library(SimEngine)
+library(DRDID)
 
 # 2. create data & helper functions ####
 
@@ -130,7 +131,34 @@ sample_individuals <- function(all_sampled_clusters, n) {
   
 }
 
-## d. helper functions ####
+## d. create final df ####
+# set values for mean outcome at baseline and follow-up, treatment effect the same;
+# starting with simplest design of mean outcome at baseline and follow-up 
+# among untreated group = 0
+create_final_data <- function(all_sampled_individuals, all_sampled_clusters, te = 1, binary_effect = 0.5, uniform_effect = 0.3) {
+  
+  # generate covariates
+  binary_covariate <- rbinom(nrow(all_sampled_individuals), size = 1, prob = 0.5)
+  uniform_covariate <- runif(nrow(all_sampled_individuals), min = 0, max = 1 )
+  
+  final_sample <- all_sampled_individuals %>% 
+    # join individual and cluster level data
+    left_join(all_sampled_clusters, by = 'individual_matching_id') %>% 
+    select(-individual_matching_id) %>% 
+    # calculate outcomes
+    mutate(treatment_effect = te) %>% 
+    mutate(outcome = 0 + cluster_effect + treatment_effect*intervention*time + 
+             time + binary_effect*binary_covariate + 
+             uniform_effect*uniform_covariate + individual_residual) %>% 
+    # add covariates to final sample df
+    mutate(binary_covariate = binary_covariate,
+           uniform_covariate = uniform_covariate)
+  
+  return(final_sample)
+  
+}
+
+## e. helper functions ####
 
 # get SD from ICC 
 get_sd <- function(icc) {
@@ -148,26 +176,31 @@ get_icc <- function(sd) {
   
 }
 
-# 3. create model ####
+# 3. create models ####
 
-# set values for mean outcome at baseline and follow-up, treatment effect the same;
-# starting with simplest design of mean outcome at baseline and follow-up 
-# among untreated group = 0
-fit_model <- function(all_sampled_individuals, all_sampled_clusters, te = 1) {
-  
-  final_sample <- all_sampled_individuals %>% 
-    # join individual and cluster level data
-    left_join(all_sampled_clusters, by = 'individual_matching_id') %>% 
-    select(-individual_matching_id) %>% 
-    # calculate outcomes
-    mutate(treatment_effect = te) %>% 
-    mutate(outcome = 0 + cluster_effect + treatment_effect*intervention*time + time + individual_residual)
+# linear
+fit_model_lm <- function(final_sample) {
   
   # fit model 
   model <- lm(outcome ~ intervention*time, data = final_sample)
   # get estimate of intervention effect
   summary <- summary(model)
   return(summary$coefficients[4,1])
+  
+}
+
+# DRDID
+fit_model_drdid <- function(final_sample) {
+  
+  # fit model 
+  invisible(model <- drdid_rc(y = final_sample$outcome,
+                              post = final_sample$time,
+                              D = final_sample$intervention,
+                              covariates = final_sample[, c("binary_covariate", "uniform_covariate")]
+  )
+  )
+  # get estimate of intervention effect
+  return(model$ATT)
   
 }
 
@@ -189,8 +222,17 @@ sim %<>% set_script(function() {
   dat <- create_clusters(1000, sd, mean = 'uncorrelated')
   all_sampled_clusters <- sample_clusters(dat, L$n_clusters, design = L$design)
   all_sampled_individuals <- sample_individuals(all_sampled_clusters, 25)
-  estimate <- fit_model(all_sampled_individuals, all_sampled_clusters, te = 1)
-  return (list("estimate"=estimate, "sd"=sd))
+  final_data <- create_final_data(all_sampled_individuals, all_sampled_clusters)
+  final_data_large_uniform <- create_final_data(all_sampled_individuals, all_sampled_clusters, uniform_effect = 300)
+  linear_estimate <- fit_model_lm(final_data)
+  drdid_estimate <- fit_model_drdid(final_data)
+  linear_estimate_large_uniform <- fit_model_lm(final_data_large_uniform)
+  drdid_estimate_large_uniform <- fit_model_drdid(final_data_large_uniform)
+  return (list("linear_estimate"=linear_estimate, 
+               "drdid_estimate" = drdid_estimate, 
+               "linear_estimate_large_uniform" = linear_estimate_large_uniform,
+               "drdid_estimate_large_uniform" = drdid_estimate_large_uniform,
+               "sd"=sd))
 })
 
 sim %<>% set_config(
@@ -200,23 +242,39 @@ sim %<>% set_config(
 
 # 6. run simulation, summarize, save #### 
 sim %<>% run()
-sim_lm <- sim
-sim_lm %>% SimEngine::summarize(
-  list(stat = "sd", x = "estimate")
+
+# linear
+sim %>% SimEngine::summarize(
+  list(stat = "sd", x = "linear_estimate")
 )
 
-save(sim_lm, file = "simulation_results.RData")
+# DRDID
+sim %>% SimEngine::summarize(
+  list(stat = "sd", x = "drdid_estimate")
+)
+
+# linear large uniform effect
+sim %>% SimEngine::summarize(
+  list(stat = "sd", x = "linear_estimate_large_uniform")
+)
+
+# DRDID large uniform effect
+sim %>% SimEngine::summarize(
+  list(stat = "sd", x = "drdid_estimate_large_uniform")
+)
+
+save(sim, file = "simulation_results_linear_drdid.RData")
 
 # 7. viz ####
 
 # initial simulation results
 (results <- sim %>% 
    SimEngine::summarize(
-     list(stat = "sd", x = "estimate")
+     list(stat = "sd", x = "linear_estimate")
    ) 
  %>% 
   filter(n_clusters == 100) %>% 
-  ggplot(aes(icc, sd_estimate, color = design)) + 
+  ggplot(aes(icc, sd_linear_estimate, color = design)) + 
    geom_line() +
    xlab('Intraclass correlation coefficient') +
    ylab('Estimated total standard deviation') + 
@@ -241,10 +299,10 @@ analytical_rcs <- expand.grid(n = n, icc = icc) %>%
 # compare simulation results and analytical calculations for ICC = 0.2
 (results <- sim %>% 
   SimEngine::summarize(
-    list(stat = "sd", x = "estimate")
+    list(stat = "sd", x = "linear_estimate")
     ) %>% 
   mutate(n = n_clusters*25,
-         var = sd_estimate^2,
+         var = sd_linear_estimate^2,
          method = 'Simulation') %>% 
   select(n, icc, var, method, design) %>% 
   rbind(analytical_disc) %>%

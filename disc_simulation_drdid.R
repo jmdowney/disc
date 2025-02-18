@@ -131,7 +131,34 @@ sample_individuals <- function(all_sampled_clusters, n) {
   
 }
 
-## d. helper functions ####
+## d. create final df ####
+# set values for mean outcome at baseline and follow-up, treatment effect the same;
+# starting with simplest design of mean outcome at baseline and follow-up 
+# among untreated group = 0
+create_final_data <- function(all_sampled_individuals, all_sampled_clusters, te = 1, binary_effect = 0.5, uniform_effect = 0.3) {
+  
+  # generate covariates
+  binary_covariate <- rbinom(nrow(all_sampled_individuals), size = 1, prob = 0.5)
+  uniform_covariate <- runif(nrow(all_sampled_individuals), min = 0, max = 1 )
+  
+  final_sample <- all_sampled_individuals %>% 
+    # join individual and cluster level data
+    left_join(all_sampled_clusters, by = 'individual_matching_id') %>% 
+    select(-individual_matching_id) %>% 
+    # calculate outcomes
+    mutate(treatment_effect = te) %>% 
+    mutate(outcome = 0 + cluster_effect + treatment_effect*intervention*time + 
+             time + binary_effect*binary_covariate + 
+             uniform_effect*uniform_covariate + individual_residual) %>% 
+    # add covariates to final sample df
+    mutate(binary_covariate = binary_covariate,
+           uniform_covariate = uniform_covariate)
+  
+  return(final_sample)
+
+}
+
+## e. helper functions ####
 
 # get SD from ICC 
 get_sd <- function(icc) {
@@ -150,28 +177,7 @@ get_icc <- function(sd) {
 }
 
 # 3. create model ####
-
-# set values for mean outcome at baseline and follow-up, treatment effect the same;
-# starting with simplest design of mean outcome at baseline and follow-up 
-# among untreated group = 0
-fit_model <- function(all_sampled_individuals, all_sampled_clusters, te = 1, binary_effect = 0.5, uniform_effect = 0.3) {
-    
-    # generate covariates
-    binary_covariate <- rbinom(nrow(all_sampled_individuals), size = 1, prob = 0.5)
-    uniform_covariate <- runif(nrow(all_sampled_individuals), min = 0, max = 1 )
-    
-    final_sample <- all_sampled_individuals %>% 
-    # join individual and cluster level data
-    left_join(all_sampled_clusters, by = 'individual_matching_id') %>% 
-    select(-individual_matching_id) %>% 
-    # calculate outcomes
-    mutate(treatment_effect = te) %>% 
-    mutate(outcome = 0 + cluster_effect + treatment_effect*intervention*time + 
-             time + binary_effect*binary_covariate + 
-             uniform_effect*uniform_covariate + individual_residual) %>% 
-    # add covariates to final sample df
-    mutate(binary_covariate = binary_covariate,
-           uniform_covariate = uniform_covariate)
+fit_model <- function(final_sample) {
   
   # fit model 
   invisible(model <- drdid_rc(y = final_sample$outcome,
@@ -198,12 +204,15 @@ sim %<>% set_levels(
 )
 
 # 5. create simulation script ####
+
+## main
 sim %<>% set_script(function() {
   sd <- get_sd(icc = L$icc)
   dat <- create_clusters(1000, sd, mean = 'uncorrelated')
   all_sampled_clusters <- sample_clusters(dat, L$n_clusters, design = L$design)
   all_sampled_individuals <- sample_individuals(all_sampled_clusters, 25)
-  estimate <- fit_model(all_sampled_individuals, all_sampled_clusters, te = 1)
+  final_data <- create_final_data(all_sampled_individuals, all_sampled_clusters)
+  estimate <- fit_model(final_data)
   return (list("estimate"=estimate, "sd"=sd))
 })
 
@@ -212,7 +221,26 @@ sim %<>% set_config(
   packages = c("tidyverse", "lme4", "stringr")
 )
 
+## testing large uniform effect
+sim_large_uniform <- 
+  sim %<>% set_script(function() {
+  sd <- get_sd(icc = L$icc)
+  dat <- create_clusters(1000, sd, mean = 'uncorrelated')
+  all_sampled_clusters <- sample_clusters(dat, L$n_clusters, design = L$design)
+  all_sampled_individuals <- sample_individuals(all_sampled_clusters, 25)
+  final_data <- create_final_data(all_sampled_individuals, all_sampled_clusters, uniform_effect = 300)
+  estimate <- fit_model(final_data)
+  return (list("estimate"=estimate, "sd"=sd))
+})
+
+sim_large_uniform %<>% set_config(
+  num_sim = 1000,
+  packages = c("tidyverse", "lme4", "stringr")
+)
+
 # 6. run simulation, summarize, save #### 
+
+## main
 sim %<>% run() 
 sim_drdid <- sim 
 sim_drdid %>% SimEngine::summarize(
@@ -221,10 +249,19 @@ sim_drdid %>% SimEngine::summarize(
 
 save(sim_drdid, file = "simulation_drdid_results.RData")
 
+# testing large uniform effect
+sim_large_uniform %<>% run() 
+sim_drdid_large_uniform <- sim_large_uniform 
+sim_drdid_large_uniform %>% SimEngine::summarize(
+  list(stat = "sd", x = "estimate")
+)
+
+save(sim_drdid_large_uniform, file = "simulation_drdid_results_large_uniform.RData")
+
 # 7. viz ####
 
 # initial simulation results
-(results <- sim %>% 
+(results <- sim_drdid_large_uniform %>% 
    SimEngine::summarize(
      list(stat = "sd", x = "estimate")
    ) 

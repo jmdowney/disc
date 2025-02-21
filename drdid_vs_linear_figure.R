@@ -44,8 +44,7 @@ simulation_drdid <- sim %>%
    facet_grid(~design) +
    xlab('Total individuals (n)') +
    ylab('Total variance') + 
-   labs(title = str_wrap('Estimated total variance under DISC and traditional RCS designs, including a large uniform covariate, and comparing variance using an unadjusted linear model vs. a complex DRDID model adjusting for covariates'),
-        linetype = 'model') 
+   labs(linetype = 'model') 
 )
 
 # 4. save figure ####

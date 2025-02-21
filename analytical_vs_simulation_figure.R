@@ -52,8 +52,7 @@ simulation_lm <- sim %>%
     facet_grid(~design) +
     xlab('Total individuals (n)') +
     ylab('Total variance') + 
-    labs(title = str_wrap('Estimated total variance under DISC and traditional RCS designs, comparing empirical and theoretical variance, for a linear model'),
-         linetype = 'Method') 
+    labs(linetype = 'Method') 
 )
 
 # 4. save figure ####

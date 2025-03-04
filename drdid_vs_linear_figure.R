@@ -44,7 +44,7 @@ simulation_drdid <- sim %>%
    facet_grid(~design) +
    xlab('Total individuals (n)') +
    ylab('Total variance') + 
-   labs(linetype = 'model') 
+   labs(linetype = 'Model') 
 )
 
 # 4. save figure ####

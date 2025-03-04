@@ -57,6 +57,6 @@ simulation_lm <- sim %>%
 
 # 4. save figure ####
 ggsave("analytical_vs_simulation_figure_linear.pdf", 
-       plot = analytical_vs_simulation_figure, 
+       plot = analytical_vs_simulation_figure_linear, 
        width = 9, 
        height = 5)

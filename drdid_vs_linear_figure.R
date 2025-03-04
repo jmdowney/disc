@@ -40,7 +40,7 @@ simulation_drdid <- sim %>%
    filter(icc == 0.2) %>% 
    mutate(model_factor = factor(model, levels = c('Linear', 'DRDID'))) %>% 
    ggplot(aes(n, var, linetype = model)) + 
-   geom_line(position = position_jitter(w=0, h=0.003)) +
+   geom_line() +
    facet_grid(~design) +
    xlab('Total individuals (n)') +
    ylab('Total variance') + 

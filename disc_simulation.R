@@ -135,7 +135,7 @@ sample_individuals <- function(all_sampled_clusters, n) {
 # set values for mean outcome at baseline and follow-up, treatment effect the same;
 # starting with simplest design of mean outcome at baseline and follow-up 
 # among untreated group = 0
-create_final_data <- function(all_sampled_individuals, all_sampled_clusters, te = 1, binary_effect = 0.5, uniform_effect = 0.3) {
+create_final_data <- function(all_sampled_individuals, all_sampled_clusters, te = 1, binary_effect = 0, uniform_effect = 0) {
   
   # generate covariates
   binary_covariate <- rbinom(nrow(all_sampled_individuals), size = 1, prob = 0.5)
@@ -223,7 +223,7 @@ sim %<>% set_script(function() {
   all_sampled_clusters <- sample_clusters(dat, L$n_clusters, design = L$design)
   all_sampled_individuals <- sample_individuals(all_sampled_clusters, 25)
   final_data <- create_final_data(all_sampled_individuals, all_sampled_clusters)
-  final_data_large_uniform <- create_final_data(all_sampled_individuals, all_sampled_clusters, uniform_effect = 10)
+  final_data_large_uniform <- create_final_data(all_sampled_individuals, all_sampled_clusters, uniform_effect = 10, binary_effect = 0.5)
   linear_estimate <- fit_model_lm(final_data)
   drdid_estimate <- fit_model_drdid(final_data)
   linear_estimate_large_uniform <- fit_model_lm(final_data_large_uniform)

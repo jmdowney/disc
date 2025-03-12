@@ -1,5 +1,6 @@
 # 1. load simulation results and packages, create helper functions ####
 
+library(tidyverse)
 library(SimEngine)
 
 load("simulation_results_linear_drdid.RData")
@@ -34,10 +35,10 @@ simulation_drdid <- sim %>%
          model = 'DRDID') %>% 
   select(n, icc, var, method, design, model)
 
-# 4. create figure to compare simulation results for each method for ICC = 0.2 ####
+# 4. create figure to compare simulation results for each method for ICC = 0.1 ####
 (drdid_vs_linear_figure <- simulation_lm %>% 
    rbind(simulation_drdid) %>% 
-   filter(icc == 0.2) %>% 
+   filter(icc == 0.1) %>% 
    mutate(model_factor = factor(model, levels = c('Linear', 'DRDID'))) %>% 
    ggplot(aes(n, var, linetype = model)) + 
    geom_line() +

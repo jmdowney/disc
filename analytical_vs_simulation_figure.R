@@ -1,5 +1,6 @@
 # 1. load simulation results and packages, create helper functions ####
 
+library(tidyverse)
 library(SimEngine)
 
 load("simulation_results_linear_drdid.RData")
@@ -42,13 +43,13 @@ simulation_lm <- sim %>%
          model = 'Linear') %>% 
   select(n, icc, var, method, design, model)
 
-# 4. create figure to compare simulation results and analytical calculations for ICC = 0.2 ####
+# 4. create figure to compare simulation results and analytical calculations for ICC = 0.1 ####
 (analytical_vs_simulation_figure_linear <- simulation_lm %>% 
     rbind(analytical_disc_lm) %>%
     rbind(analytical_rcs_lm) %>% 
-    filter(icc == 0.2) %>% 
+    filter(icc == 0.1) %>% 
     ggplot(aes(n, var, linetype = method)) + 
-    geom_line(position = position_jitter(w=0, h=0.003)) +
+    geom_line(position = position_jitter(w=0, h=0.002)) +
     facet_grid(~design) +
     xlab('Total individuals (n)') +
     ylab('Total variance') + 

@@ -223,7 +223,7 @@ sim %<>% set_script(function() {
   all_sampled_clusters <- sample_clusters(dat, L$n_clusters, design = L$design)
   all_sampled_individuals <- sample_individuals(all_sampled_clusters, 25)
   final_data <- create_final_data(all_sampled_individuals, all_sampled_clusters)
-  final_data_large_uniform <- create_final_data(all_sampled_individuals, all_sampled_clusters, uniform_effect = 10, binary_effect = 0.5)
+  final_data_large_uniform <- create_final_data(all_sampled_individuals, all_sampled_clusters, uniform_effect = 5, binary_effect = 0.5)
   linear_estimate <- fit_model_lm(final_data)
   drdid_estimate <- fit_model_drdid(final_data)
   linear_estimate_large_uniform <- fit_model_lm(final_data_large_uniform)

@@ -420,7 +420,7 @@ sim %<>% set_levels(
 # 5. create simulation scripts ####
 sim %<>% set_script(function() {
   sd_level1 <- get_sd(icc = L$icc)
-  sd_level2 <- get_sd(icc = L$icc * 0.5) # Level 2 ICC is half of level 1
+  sd_level2 <- get_sd(icc = L$icc)
   
   # Determine design based on sampling scenario
   # For three-level simulation:

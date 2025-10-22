@@ -403,19 +403,19 @@ fit_model_drdid <- function(final_sample) {
 sim <- new_sim()
 
 # 3-level
-sim %<>% set_levels(
-  icc = seq(from = 0, to = 0.2, by = 0.05),
-  n_clusters = seq(from = 10, to = 100, by = 10),
-  sampling_scenario = c("DDD", "SSD", "SDD")  
-)
-
-# 2-level
 # sim %<>% set_levels(
 #   icc = seq(from = 0, to = 0.2, by = 0.05),
-#   design = c("Traditional RCS", "DISC"),
 #   n_clusters = seq(from = 10, to = 100, by = 10),
-#   sampling_scenario = c("Two_Level")  # Two-level designs only
+#   sampling_scenario = c("DDD", "SSD", "SDD")  
 # )
+
+# 2-level
+sim %<>% set_levels(
+  icc = seq(from = 0, to = 0.2, by = 0.05),
+  design = c("Traditional RCS", "DISC"),
+  n_clusters = seq(from = 10, to = 100, by = 10),
+  sampling_scenario = c("Two_Level")  # Two-level designs only
+)
 
 # 5. create simulation scripts ####
 sim %<>% set_script(function() {
@@ -483,7 +483,8 @@ sim %<>% set_config(
 if (sys.nframe() == 0) {
   
   sim %<>% run()
-  save(sim, file = "simulation_results_linear_drdid_3level.RData")
+  # uncomment to overwrite current saved .Rdata file
+  # save(sim, file = "simulation_results_linear_drdid.RData")
   
   # linear
   sim %>% SimEngine::summarize(

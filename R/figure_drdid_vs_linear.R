@@ -1,8 +1,5 @@
 # 1. load simulation results and packages, create helper functions ####
 
-library(tidyverse)
-library(SimEngine)
-
 # original 2-level simulation
 # load("simulation_results_linear_drdid.RData")
 

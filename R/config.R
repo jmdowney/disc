@@ -3,7 +3,7 @@
 
 # Set packages
 cfg$pkgs <- c("SimEngine", "DRDID", "tidyverse", "lme4", "stringr")
-cfg$pkgs_nocluster <- c("ggplot2")
+cfg$pkgs_nocluster <- c("ggplot2", "ggpubr", "grid")
 
 # Set cluster config
 if (Sys.getenv("HOME")=="/home/akenny") {

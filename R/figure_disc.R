@@ -1,11 +1,5 @@
 
-library(dplyr)
-library(ggplot2)
-library(ggpubr)
-library(grid)
-
 set.seed(5)
-cfg <- list(save=T)
 df_pop <- data.frame(
   "x" = double(),
   "y" = double(),
@@ -139,14 +133,12 @@ p_combined <- ggpubr::ggarrange(
   common.legend = T,
   legend = "bottom"
 )
-print(p_combined)
 
-if (cfg$save) {
-  ggsave(
-    filename = "design_plot.pdf",
-    plot = p_combined,
-    device = "pdf",
-    width = 9,
-    height = 5
-  )
-}
+# Save figure
+ggsave(
+  filename = paste0("Figures/", cfg$d, " design_plot.pdf"),
+  plot = p_combined,
+  device = "pdf",
+  width = 9,
+  height = 5
+)

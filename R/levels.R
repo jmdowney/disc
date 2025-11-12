@@ -7,7 +7,7 @@ if (cfg$run_sims && Sys.getenv("sim_run") %in% c("first", "")) {
     icc = seq(from = 0, to = 0.2, by = 0.05),
     design = c("Traditional RCS", "DISC"),
     n_clusters = seq(from = 10, to = 100, by = 10),
-    sampling_scenario = c("Two_Level")  # Two-level designs only
+    sampling_scenario = c("Two_Level")
   )
   
   level_sets[["main_3_levels"]] <- list(

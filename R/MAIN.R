@@ -5,15 +5,16 @@
 
 # Main config
 cfg <- list(
-  run_sims = F,
-  run_process = T,
+  run_sims = T,
+  run_process = F,
   sim_which = "main",
-  sim_level_set = "main_3_levels", # "main_2_levels" "main_3_levels"
+  sim_level_set = "main_2_levels", # "main_2_levels" "main_3_levels"
   sim_run_or_update = "run",
   sim_num = 1000,
   sim_parallel = F,
   sim_n_cores = 500,
-  sim_stop_at_error = F
+  sim_stop_at_error = F,
+  d = format(Sys.time(), "%Y-%m-%d")
 )
 
 # Secondary config
@@ -33,4 +34,8 @@ source("R/levels.R", local=T)
 if (cfg$run_sims) { source("R/run.R", local=T) }
 
 # Tables and figures
-if (cfg$run_process) { source("R/process.R", local=T) }
+if (cfg$run_process) {
+  
+  source("R/figure_disc.R", local=T)
+  
+}

@@ -1,10 +1,5 @@
 # 1. load simulation results and packages, create helper functions ####
 
-library(SimEngine)
-library(stringr)
-library(ggplot2)
-library(dplyr)
-
 # load("simulation_results.RData")
 
 # get SD from ICC 

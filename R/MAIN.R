@@ -1,11 +1,16 @@
+# NOTES:
+#     TWO separate simulations:
+#       1. Two-level designs: Traditional RCS vs DISC (both at two levels)
+#       2. Three-level designs: DDD (RCS) vs SSD (DISC) vs SDD (DISC)
+
 # Main config
 cfg <- list(
   run_sims = F,
   run_process = T,
-  sim_which = "estimation",
-  sim_level_set = "estimation_1",
+  sim_which = "main",
+  sim_level_set = "main_3_levels", # "main_2_levels" "main_3_levels"
   sim_run_or_update = "run",
-  sim_num = 100,
+  sim_num = 1000,
   sim_parallel = F,
   sim_n_cores = 500,
   sim_stop_at_error = F

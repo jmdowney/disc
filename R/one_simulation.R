@@ -15,7 +15,7 @@ if (cfg$sim_which=="main") {
     # Determine design based on sampling scenario
     # For three-level simulation:
     if (L$sampling_scenario == "DDD") {
-      design <- "Traditional RCS"
+      design <- "RCS"
     } else if (L$sampling_scenario %in% c("SSD", "SDD")) {
       design <- "DISC"
     } else if (L$sampling_scenario == "Two_Level") {

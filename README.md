@@ -5,7 +5,7 @@
 The simulation supports **TWO separate comparisons**:
 
 1. **Three-level designs**: DDD vs SSD vs SDD
-2. **Two-level designs**: Traditional RCS vs DISC
+2. **Two-level designs**: RCS vs DISC
 
 These are run as separate simulations.
 
@@ -17,7 +17,7 @@ These are run as separate simulations.
 
 | Code | Name | Level 1 | Level 2 | Individuals | Design Used |
 |------|------|---------|---------|-------------|-------------|
-| **DDD** | Different-Different-Different | Different clusters at T0/T1 | Different subclusters at T0/T1 | Different individuals at T0/T1 | Traditional 3-level RCS |
+| **DDD** | Different-Different-Different | Different clusters at T0/T1 | Different subclusters at T0/T1 | Different individuals at T0/T1 | 3-level RCS |
 | **SDD** | Same-Different-Different | Same clusters at T0/T1 | Different subclusters at T0/T1 | Different individuals at T0/T1 | DISC 3-level |
 | **SSD** | Same-Same-Different | Same clusters at T0/T1 | Same subclusters at T0/T1 | Different individuals at T0/T1 | DISC 3-level |
 
@@ -25,7 +25,7 @@ These are run as separate simulations.
 
 | Code | Name | Level 1 | Individuals | Design Used |
 |------|------|---------|-------------|-------------|
-| **Two_Level** | Traditional RCS | Different clusters at T0/T1 | Different individuals at T0/T1 | Traditional 2-level RCS |
+| **Two_Level** | RCS | Different clusters at T0/T1 | Different individuals at T0/T1 | 2-level RCS |
 | **Two_Level** | DISC | Same clusters at T0/T1 | Different individuals at T0/T1 | DISC 2-level |
 
 ---
@@ -62,14 +62,14 @@ Note: This version takes a very long time to run! Only overwrite saved .Rdata if
 # In disc_simulation.R, comment out lines 406-410 and uncomment lines 413-418:
 sim %<>% set_levels(
   icc = seq(from = 0, to = 0.2, by = 0.05),
-  design = c("Traditional RCS", "DISC"),
+  design = c("RCS", "DISC"),
   n_clusters = seq(from = 10, to = 100, by = 10),
   sampling_scenario = c("Two_Level")  # Two-level designs only
 )
 ```
 
 This compares:
-- **Traditional RCS**: Different level 1 clusters at each time
+- **RCS**: Different level 1 clusters at each time
 - **DISC**: Same level 1 clusters at each time
 
 **Total scenarios**: 5 (ICC) × 2 (designs) × 10 (n_clusters) = **100 scenarios**
@@ -110,7 +110,7 @@ result <- test_one_scenario(sampling_scenario = "DDD")  # or "SSD" or "SDD"
 View(result$final_data)
 
 # Two-level designs  
-result <- test_two_level(design = "DISC")  # or "Traditional RCS"
+result <- test_two_level(design = "DISC")  # or "RCS"
 View(result$final_data)
 
 # Use browser() to pause and inspect

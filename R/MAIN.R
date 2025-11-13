@@ -1,6 +1,6 @@
 # NOTES:
 #     TWO separate simulations:
-#       1. Two-level designs: Traditional RCS vs DISC (both at two levels)
+#       1. Two-level designs: RCS vs DISC (both at two levels)
 #       2. Three-level designs: DDD (RCS) vs SSD (DISC) vs SDD (DISC)
 
 # Main config

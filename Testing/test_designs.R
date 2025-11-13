@@ -8,7 +8,7 @@ test_one_scenario <- function(icc = 0.1, sampling_scenario = "SSD", n_clusters =
   
   # Determine design based on sampling scenario
   if (sampling_scenario == "DDD") {
-    design <- "Traditional RCS"
+    design <- "RCS"
   } else if (sampling_scenario %in% c("SSD", "SDD")) {
     design <- "DISC"
   } else {
@@ -181,7 +181,7 @@ test_design <- function(sampling_scenario, design = NULL, n_clusters = 20) {
       cat("  ✗ FAIL\n")
     }
     
-  } else if (sampling_scenario == "Two_Level" && design == "Traditional RCS") {
+  } else if (sampling_scenario == "Two_Level" && design == "RCS") {
     l1_same <- setequal(baseline_l1, endline_l1)
     cat("  Expected: Different L1\n")
     if (!l1_same) {
@@ -204,4 +204,4 @@ test_design("SSD", n_clusters = 10)
 
 # Two-level designs
 test_design("Two_Level", design = "DISC", n_clusters = 10)
-test_design("Two_Level", design = "Traditional RCS", n_clusters = 10)
+test_design("Two_Level", design = "RCS", n_clusters = 10)

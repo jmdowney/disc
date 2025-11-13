@@ -92,7 +92,7 @@ if (is_three_level) {
 } else {
   # Two-level design: keep original format
   combined_data <- combined_data %>%
-    mutate(scenario_factor = factor(scenario, levels = c('Traditional RCS', 'DISC')))
+    mutate(scenario_factor = factor(scenario, levels = c('RCS', 'DISC')))
   
   drdid_vs_linear_figure <- combined_data %>%
     ggplot(aes(n, var, linetype = model)) + 

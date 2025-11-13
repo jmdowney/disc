@@ -67,17 +67,17 @@ create_level2_clusters <- function(level1_clusters, n_level2_per_level1, sd_leve
 ## c. sample level 1 clusters at baseline and endline for each design ####
 sample_level1_clusters <- function(dat, n, design) {
   
-  # separate designs for traditional RCS vs DISC
-  if (design == 'Traditional RCS') {
+  # separate designs for RCS vs DISC
+  if (design == 'RCS') {
     
-    # traditional repeated cross sectional design, baseline
+    # repeated cross sectional design, baseline
     sample_baseline <- dat %>% 
       # ensure half of clusters sampled are intervention and half control
       group_by(intervention) %>% 
       slice_sample(n = n/2) %>% 
       mutate(time = 0)
     
-    # traditional repeated cross sectional design, endline
+    # repeated cross sectional design, endline
     sample_endline <- dat %>% 
       # ensure half of clusters sampled are intervention and half control
       group_by(intervention) %>% 
@@ -91,7 +91,7 @@ sample_level1_clusters <- function(dat, n, design) {
     ) %>% 
       # create composite ID: cluster_time
       mutate(composite_id = paste0(level1_cluster_id, "_", time)) %>% 
-      mutate(design = 'Traditional RCS')
+      mutate(design = 'RCS')
     
     return(all_sampled_level1_clusters)
     
@@ -121,7 +121,7 @@ sample_level1_clusters <- function(dat, n, design) {
     
   } else {
     
-    stop("design can only be 'Traditional RCS' or 'DISC'")
+    stop("design can only be 'RCS' or 'DISC'")
     
   }
 }
@@ -135,7 +135,7 @@ sample_level2_clusters <- function(all_sampled_level1_clusters, level2_clusters,
     
   } else if (sampling_scenario == "DDD") {
     # Different level 1, different level 2, different individuals (three-level RCS)
-    # For Traditional RCS at level 1, we need to sample different level 2 at each timepoint
+    # For RCS at level 1, we need to sample different level 2 at each timepoint
     
     level2_samples <- list()
     
@@ -365,7 +365,7 @@ fit_model_lm <- function(final_sample) {
   model <- lm(outcome ~ intervention*time, data = final_sample)
   
   n <- nrow(final_sample)/2
-  if (L$design=="Traditional RCS") {
+  if (L$design=="RCS") {
     se <- sqrt(8*( L$ind_per_clust*((get_sd(L$icc))^2) + 1)/n)
   } else if (L$design=="DISC") {
     se <- sqrt(8/n)
@@ -377,7 +377,6 @@ fit_model_lm <- function(final_sample) {
   summary <- summary(model)
   return(list(
     est = summary$coefficients[4,1],
-    # se = summary$coefficients[4,2]
     se = se
   ))
   

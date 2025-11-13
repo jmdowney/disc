@@ -26,7 +26,7 @@ analytical_disc_varying_m <- expand.grid(m = m, icc = icc) %>%
 analytical_rcs_varying_m <- expand.grid(m = m, icc = icc) %>% 
   mutate(var = 8*(m*(get_sd(icc,sigma)^2) + sigma^2)/n,
          method = 'Analytical',
-         design = 'Traditional RCS')
+         design = 'RCS')
 
 # 3. create figure to compare designs for analytical calculations across different ICC values ####
 custom_labels <- c("10" = "10 individuals\nper cluster", "25" = "25 individuals\nper cluster")
@@ -38,7 +38,7 @@ custom_labels <- c("10" = "10 individuals\nper cluster", "25" = "25 individuals\
     xlab('ICC') +
     ylab('Total variance') + 
     scale_y_continuous(breaks=c(1:10)) +
-    labs(title = str_wrap('Total analytical variance, comparing DISC and traditional RCS designs'),
+    labs(title = str_wrap('Total analytical variance, comparing DISC and RCS designs'),
          linetype = 'Design') 
 )
 

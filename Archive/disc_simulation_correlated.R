@@ -49,7 +49,7 @@ create_clusters <- function(n, sd, mean) {
 sample_clusters <- function(dat, n, design) {
   
   # separate designs for traditional RCS vs DISC
-  if (design == 'Traditional RCS') {
+  if (design == 'RCS') {
     
     # traditional repeated cross sectional design, baseline
     sample_baseline <- dat %>% 
@@ -72,7 +72,7 @@ sample_clusters <- function(dat, n, design) {
     ) %>% 
       # add another ID, to match individuals to clusters
       tibble::rowid_to_column("individual_matching_id")  %>% 
-      mutate(design = 'Traditional RCS')
+      mutate(design = 'RCS')
     
     return(all_sampled_clusters)
     
@@ -102,7 +102,7 @@ sample_clusters <- function(dat, n, design) {
     
   } else {
     
-    stop("design can only be 'Traditional RCS' or 'DISC'")
+    stop("design can only be 'RCS' or 'DISC'")
     
   }
 }
@@ -179,7 +179,7 @@ sim <- new_sim()
 # different values of ICC + different designs (traditional vs disc)
 sim %<>% set_levels(
   icc = seq(from = 0, to = 0.2, by = 0.05),
-  design = c("Traditional RCS", "DISC"),
+  design = c("RCS", "DISC"),
   n_clusters = seq(from = 10, to = 100, by = 10)
 )
 

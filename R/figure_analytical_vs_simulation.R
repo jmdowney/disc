@@ -29,7 +29,7 @@ analytical_rcs_lm <- expand.grid(n_clusters=n_clust_lm, icc=icc_lm,
   mutate(n = n_clust_lm*ind_per_clust,
          var = 8*( ind_per_clust*((get_sd(icc))^2) + 1)/n,
          method = 'Analytical',
-         design = 'Traditional RCS',
+         design = 'RCS',
          model = 'Linear')
 
 # 3. wrangle simulation datasets ####

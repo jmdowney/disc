@@ -17,7 +17,7 @@ simulation_lm <- sim %>%
 
 
 # Supplemental figures for appendix
-(supp_fig_3 <- simulation_lm %>%
+(supp_fig_2 <- simulation_lm %>%
     mutate(
       icc = factor(paste("ICC:",icc),
                    levels=paste("ICC:",sim$levels$icc)),
@@ -39,8 +39,8 @@ simulation_lm <- sim %>%
     theme(legend.position="bottom")
 )
 ggsave(
-  filename = paste0("Figures/", cfg$d, " supp_fig_3.pdf"),
-  plot = supp_fig_1,
+  filename = paste0("Figures/", cfg$d, " supp_fig_2.pdf"),
+  plot = supp_fig_2,
   device = "pdf",
   width = 8,
   height = 5

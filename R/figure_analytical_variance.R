@@ -38,8 +38,7 @@ custom_labels <- c("10" = "10 individuals\nper cluster", "25" = "25 individuals\
     xlab('ICC') +
     ylab('Total variance') + 
     scale_y_continuous(breaks=c(1:10)) +
-    labs(title = str_wrap('Total analytical variance, comparing DISC and RCS designs'),
-         linetype = 'Design') 
+    labs(linetype = 'Design') 
 )
 
 # 4. save ####

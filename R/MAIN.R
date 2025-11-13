@@ -36,6 +36,8 @@ if (cfg$run_sims) { source("R/run.R", local=T) }
 # Tables and figures
 if (cfg$run_process) {
   
-  source("R/figure_disc.R", local=T)
+  source("R/figure_disc.R", local=T) # Figure 1
+  source("R/figure_analytical_variance.R", local=T) # Figure 2
+  source("R/figure_analytical_vs_simulation.R", local=T) # Figure 3, Supp figs
   
 }

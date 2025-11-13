@@ -42,8 +42,11 @@ custom_labels <- c("10" = "10 individuals\nper cluster", "25" = "25 individuals\
          linetype = 'Design') 
 )
 
-# # 4. save ####
-# ggsave("analytical_variance_figure.pdf",
-#        plot = analytical_variance_figure,
-#        width = 9,
-#        height = 5)
+# 4. save ####
+ggsave(
+  filename = paste0("Figures/", cfg$d, " analytical_variance_figure.pdf"),
+  plot = analytical_variance_figure,
+  device = "pdf",
+  width = 9,
+  height = 5
+)

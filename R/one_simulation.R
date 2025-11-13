@@ -42,7 +42,7 @@ if (cfg$sim_which=="main") {
                                              n_level2_per_level1 = 5, L$sampling_scenario, design)
     
     # Sample individuals
-    all_sampled_individuals <- sample_individuals(all_sampled_level1_clusters, 25, L$sampling_scenario, level2_samples)
+    all_sampled_individuals <- sample_individuals(all_sampled_level1_clusters, L$ind_per_clust, L$sampling_scenario, level2_samples)
     
     # Create final data
     final_data <- create_final_data(all_sampled_individuals, all_sampled_level1_clusters, sampling_scenario = L$sampling_scenario, level2_samples = level2_samples)
@@ -55,10 +55,11 @@ if (cfg$sim_which=="main") {
     drdid_estimate_large_uniform <- fit_model_drdid(final_data_large_uniform)
     
     return (list(
-      "linear_estimate" = linear_estimate,
-      "drdid_estimate" = drdid_estimate,
-      "linear_estimate_large_uniform" = linear_estimate_large_uniform,
-      "drdid_estimate_large_uniform" = drdid_estimate_large_uniform,
+      "linear_estimate" = linear_estimate$est,
+      "linear_se" = linear_estimate$se,
+      "drdid_estimate" = drdid_estimate$est,
+      "linear_estimate_large_uniform" = linear_estimate_large_uniform$est,
+      "drdid_estimate_large_uniform" = drdid_estimate_large_uniform$est,
       "sd_level1" = sd_level1,
       "sd_level2" = sd_level2
     ))

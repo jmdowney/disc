@@ -361,11 +361,25 @@ get_icc <- function(sd) {
 # linear
 fit_model_lm <- function(final_sample) {
   
-  # fit model 
+  # Linear model 
   model <- lm(outcome ~ intervention*time, data = final_sample)
+  
+  n <- nrow(final_sample)/2
+  if (L$design=="Traditional RCS") {
+    se <- sqrt(8*( L$ind_per_clust*((get_sd(L$icc))^2) + 1)/n)
+  } else if (L$design=="DISC") {
+    se <- sqrt(8/n)
+  } else {
+    se <- 999
+  }
+  
   # get estimate of intervention effect
   summary <- summary(model)
-  return(summary$coefficients[4,1])
+  return(list(
+    est = summary$coefficients[4,1],
+    # se = summary$coefficients[4,2]
+    se = se
+  ))
   
 }
 
@@ -380,6 +394,6 @@ fit_model_drdid <- function(final_sample) {
   )
   )
   # get estimate of intervention effect
-  return(model$ATT)
+  return(list(est=model$ATT))
   
 }

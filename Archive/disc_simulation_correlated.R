@@ -188,7 +188,7 @@ sim %<>% set_script(function() {
   sd <- get_sd(icc = L$icc)
   dat <- create_clusters(1000, sd, mean = 'correlated')
   all_sampled_clusters <- sample_clusters(dat, L$n_clusters, design = L$design)
-  all_sampled_individuals <- sample_individuals(all_sampled_clusters, 25)
+  all_sampled_individuals <- sample_individuals(all_sampled_clusters, L$ind_per_clust)
   estimate <- fit_model(all_sampled_individuals, all_sampled_clusters, te = 1)
   return (list("estimate"=estimate, "sd"=sd))
 })

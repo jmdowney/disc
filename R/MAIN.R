@@ -38,6 +38,7 @@ if (cfg$run_process) {
   
   source("R/figure_disc.R", local=T) # Figure 1
   source("R/figure_analytical_variance.R", local=T) # Figure 2
-  source("R/figure_analytical_vs_simulation.R", local=T) # Figure 3, Supp figs
+  source("R/figure_analytical_vs_simulation.R", local=T) # Figure 3, Supp figs 1,2
+  source("R/figure_vary_cluster_size.R", local=T) # Supp fig 3
   
 }

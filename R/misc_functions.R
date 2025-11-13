@@ -250,7 +250,7 @@ sample_level2_clusters <- function(all_sampled_level1_clusters, level2_clusters,
 }
 
 ## e. sample individuals from each cluster ####
-sample_individuals <- function(all_sampled_clusters, n, sampling_scenario, level2_samples = NULL) {
+sample_individuals <- function(all_sampled_clusters, n, ipc_sd, sampling_scenario, level2_samples = NULL) {
   
   if (sampling_scenario == "Two_Level") {
     # Two-level design: sample individuals directly from level 1 clusters
@@ -260,11 +260,15 @@ sample_individuals <- function(all_sampled_clusters, n, sampling_scenario, level
     
     # loop through all sampled cluster_time combos
     for (i in seq_len(nrow(all_sampled_clusters))) {
+      
+      # Generate sample size
+      n_new <- max(round(rnorm(n=1, mean=n, sd=ipc_sd)),2)
+      
       cluster_time <- all_sampled_clusters$composite_id[i]
       # generate individual samples
-      samples <- rnorm(n = n, 0, 1)
+      samples <- rnorm(n = n_new, 0, 1)
       # create df with composite ID, individual ID, and individual samples
-      df <- tibble(composite_id = cluster_time, individual_id = 1:n, individual_residual = samples)
+      df <- tibble(composite_id = cluster_time, individual_id = 1:n_new, individual_residual = samples)
       # append to list 
       individual_samples[[i]] <- df
     }
@@ -277,6 +281,8 @@ sample_individuals <- function(all_sampled_clusters, n, sampling_scenario, level
   } else {
     # Three-level design: sample individuals from level 2 clusters
     
+    if (ipc_sd!=0) { stop("Must have ipc_sd=0 with three-level design.") }
+    
     individual_samples <- list()
     
     # loop through all sampled level 2 cluster_time combos
@@ -285,7 +291,7 @@ sample_individuals <- function(all_sampled_clusters, n, sampling_scenario, level
       # generate individual samples
       samples <- rnorm(n = n, 0, 1)
       # create df with composite ID, individual ID, and individual samples
-      df <- tibble(composite_id = cluster_time, individual_id = 1:n, individual_residual = samples)
+      df <- tibble(composite_id = cluster_time, individual_id = 1:n_new, individual_residual = samples)
       # append to list 
       individual_samples[[i]] <- df
     }

@@ -43,6 +43,12 @@ simulation_lm <- sim %>%
          method = 'Simulation',
          model = 'Linear') %>% 
   select(n_clusters, icc, ind_per_clust, n, var, method, design, model)
+
+if ("Traditional RCS" %in% unique(simulation_lm$design)) {
+  simulation_lm %<>% mutate(
+    design = ifelse(design=="Traditional RCS", "RCS", design)
+  )
+}
   
 # 4. create figure to compare simulation results and analytical calculations for ICC = 0.1 ####
 df_full <- simulation_lm %>% 
@@ -63,7 +69,7 @@ df_filtered <- df_full %>% filter(icc==0.1 & ind_per_clust==25)
 # 4. save figure ####
 ggsave(
   filename = paste0("Figures/", cfg$d, " analytical_vs_simulation_figure_linear.pdf"),
-  plot = p_combined,
+  plot = analytical_vs_simulation_figure_linear,
   device = "pdf",
   width = 9,
   height = 5
@@ -85,6 +91,7 @@ ggsave(
       cols = dplyr::vars(ind_per_clust),
       scales = "free"
     ) +
+    scale_color_manual(values=c("#E69F00", "#009E73")) +
     xlab('Number of clusters') +
     ylab('Total variance') + 
     labs(linetype = 'Method', shape="Design", color="Design") +
@@ -117,5 +124,4 @@ summ2 <- sim %>% SimEngine::summarize(
     MSE = round(MSE, 3),
     Coverage = round(Coverage, 3)
   )
-
 print(summ2)

@@ -22,7 +22,7 @@ test_one_scenario <- function(icc = 0.1, sampling_scenario = "SSD", n_clusters =
   all_sampled_level1_clusters <- sample_level1_clusters(level1_clusters, n_clusters, design = design)
   level2_samples <- sample_level2_clusters(all_sampled_level1_clusters, level2_clusters, 
                                            n_level2_per_level1 = 5, sampling_scenario, design)
-  all_sampled_individuals <- sample_individuals(all_sampled_level1_clusters, 25, 
+  all_sampled_individuals <- sample_individuals(all_sampled_level1_clusters, 25, 0,
                                                 sampling_scenario, level2_samples)
   final_data <- create_final_data(all_sampled_individuals, all_sampled_level1_clusters, 
                                   sampling_scenario = sampling_scenario, 
@@ -45,7 +45,7 @@ test_two_level <- function(icc = 0.1, design = "DISC", n_clusters = 20, browse_f
   level1_clusters <- create_level1_clusters(1000, sd_level1, mean = 'uncorrelated')
   all_sampled_level1_clusters <- sample_level1_clusters(level1_clusters, n_clusters, design = design)
   level2_samples <- NULL
-  all_sampled_individuals <- sample_individuals(all_sampled_level1_clusters, 25, "Two_Level", level2_samples)
+  all_sampled_individuals <- sample_individuals(all_sampled_level1_clusters, 25, 0, "Two_Level", level2_samples)
   final_data <- create_final_data(all_sampled_individuals, all_sampled_level1_clusters, 
                                   sampling_scenario = "Two_Level", level2_samples = NULL)
   

@@ -42,7 +42,7 @@ if (cfg$sim_which=="main") {
                                              n_level2_per_level1 = 5, L$sampling_scenario, design)
     
     # Sample individuals
-    all_sampled_individuals <- sample_individuals(all_sampled_level1_clusters, L$ind_per_clust, L$sampling_scenario, level2_samples)
+    all_sampled_individuals <- sample_individuals(all_sampled_level1_clusters, L$ind_per_clust, L$ipc_sd, L$sampling_scenario, level2_samples)
     
     # Create final data
     final_data <- create_final_data(all_sampled_individuals, all_sampled_level1_clusters, sampling_scenario = L$sampling_scenario, level2_samples = level2_samples)

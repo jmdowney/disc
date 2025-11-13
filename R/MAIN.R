@@ -8,7 +8,7 @@ cfg <- list(
   run_sims = T,
   run_process = F,
   sim_which = "main",
-  sim_level_set = "main_2_levels", # "main_2_levels" "main_3_levels"
+  sim_level_set = "main_vary_cluster_size", # "main_2_levels" "main_3_levels" "main_vary_cluster_size"
   sim_run_or_update = "run",
   sim_num = 1000,
   sim_parallel = F,

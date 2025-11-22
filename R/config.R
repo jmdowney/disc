@@ -1,5 +1,5 @@
 # Change library path
-.libPaths(c("/home/akenny/R_lib", "/hpc/home/ak811/R_lib", .libPaths()))
+.libPaths(c("/home/akenny/R_lib", "/hpc/home/ak811/R_lib", "/home/ubuntu/R_libs", .libPaths()))
 
 # Set packages
 cfg$pkgs <- c("SimEngine", "DRDID", "tidyverse", "lme4", "stringr")
@@ -26,6 +26,11 @@ if (Sys.getenv("HOME")=="/home/akenny") {
     js = "slurm",
     dir = paste0("/shared/home/ak811/", Sys.getenv("proj"),
                  "/Code__", Sys.getenv("proj"))
+  )
+} else if (Sys.getenv("HOME")=="/home/ubuntu") {
+  cluster_config <- list(
+    js = "slurm",
+    dir = paste0("/home/ubuntu/", Sys.getenv("proj"))
   )
 } else {
   cluster_config <- list(js="", dir="")

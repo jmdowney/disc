@@ -229,15 +229,5 @@ ggplot(df_long, aes(x = value, y = variable)) +
   ) +
   theme_minimal()
 
-ggsave("change_variables_scatter.png", width = 8, height = 5, dpi = 300)
-
-
-# sample repeatedly for both DISC and RCS, plot estimates for each to show higher variance for RCS
-  # also plot true change in full population
-# sample size:
-  # start with 25 clusters from LocalArea, 20 HH per cluster
-  # use PPS sampling 
-  # play with sample size for clusters and individuals
-# find binary outcome variable where
-  # there is some change over time, ideally with high cluster-level variance
+ggsave("2025-11-26 disc_rcs_ahri.pdf", width = 8, height = 5, dpi = 300)
   

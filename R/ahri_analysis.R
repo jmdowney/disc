@@ -11,6 +11,7 @@ loc_data <- read_dta("RD01-03 ACDIS BoundedStructures.dta") %>%
 hh_data <- read_csv("RD06-99 ACDIS HSE-H All/RD06-99 ACDIS HSE-H All.csv")
 all_data <- hh_data %>% 
   left_join(loc_data, by = "BSIntId")
+setwd("/Users/jordandowney/hybrid-cluster-sampling-simulation")
 
 # EDA ==========================================================================
 
@@ -34,7 +35,7 @@ hh_tab <- all_data %>%
 
 # How many categories of binary variables?
 (var_tab <- all_data %>%
-  group_by(OLS) %>%
+  group_by(CTL) %>%
   summarize(count = n()))
 
 # Create population ============================================================  
@@ -84,9 +85,7 @@ endline <- "2017"
   }
 
 # Binary outcome variable
-outcome <- "OLS"
-#outcome <- "CTL"
-#outcome <- "ECO"
+outcome <- "CTL"
 
 ## Select years and households ####
 all_data <- hh_data %>%
@@ -211,7 +210,7 @@ df_long <- results %>%
   )
 
 # Create scatterplot with vertical jitter
-ggplot(df_long, aes(x = value, y = variable)) +
+disc_rcs_ahri <- ggplot(df_long, aes(x = value, y = variable)) +
   geom_jitter(
     height = 0.1,        # Amount of vertical jitter
     width = 0,           # No horizontal jitter
@@ -229,5 +228,10 @@ ggplot(df_long, aes(x = value, y = variable)) +
   ) +
   theme_minimal()
 
-ggsave("2025-11-26 disc_rcs_ahri.pdf", width = 8, height = 5, dpi = 300)
-  
+ggsave(
+  filename = paste0("Figures/", "2025-11-26 disc_rcs_ahri.pdf"),
+  plot = disc_rcs_ahri,
+  device = "pdf",
+  width = 9,
+  height = 5
+)

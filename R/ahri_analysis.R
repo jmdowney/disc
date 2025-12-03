@@ -200,6 +200,15 @@ true <- population %>%
   arrange(year)
 true_change <- true[2,2] - true[1,2]
 
+# Calculate variance
+var <- results %>% 
+  summarise(disc_var = var(change_disc), rcs_var = var(change_rcs))
+
+# Calculate number of local areas in final population
+clusters <- population %>% 
+  group_by(LocalArea) %>% 
+  summarize(count = n())
+
 # Reshape data from wide to long format
 df_long <- results %>%
   select(change_rcs, change_disc) %>%
@@ -210,7 +219,7 @@ df_long <- results %>%
   )
 
 # Create scatterplot with vertical jitter
-disc_rcs_ahri <- ggplot(df_long, aes(x = value, y = variable)) +
+(disc_rcs_ahri <- ggplot(df_long, aes(x = value, y = variable)) +
   geom_jitter(
     height = 0.1,        # Amount of vertical jitter
     width = 0,           # No horizontal jitter
@@ -219,17 +228,18 @@ disc_rcs_ahri <- ggplot(df_long, aes(x = value, y = variable)) +
     color = "gray28"  # Point color
   ) +
   # add true value
-  geom_vline(xintercept = true_change[[1]], linetype = "dashed", size = 0.4) +
-  annotate("text", x = -0.08, y = 2.5, label = "Population Mean Difference", hjust = -0.1) +
+  geom_vline(xintercept = true_change[[1]], linetype = "dashed", linewidth = 0.4) +
+  #annotate("text", x = -0.08, y = 2.5, label = "Population Mean Difference", hjust = -0.1) +
   scale_y_discrete(labels = c("change_disc" = "DISC", "change_rcs" = "RCS")) +
+  scale_x_continuous(labels = scales::percent, breaks = scales::pretty_breaks(n = 10)) +
   labs(
     x = "Mean Difference",
     y = "Design"
   ) +
-  theme_minimal()
+  theme_minimal())
 
 ggsave(
-  filename = paste0("Figures/", "2025-11-26 disc_rcs_ahri.pdf"),
+  filename = paste0("Figures/", "2025-12-03 disc_rcs_ahri.pdf"),
   plot = disc_rcs_ahri,
   device = "pdf",
   width = 9,

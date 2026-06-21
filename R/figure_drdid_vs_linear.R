@@ -112,7 +112,7 @@ for (is_three_level in c(FALSE,TRUE)) {
   # 4. save figure ####
   if (is_three_level) {
     ggsave(
-      filename = paste0("Figures/", cfg$d, " drdid_vs_linear_figure_3level.pdf"),
+      filename = paste0("Figures/", Sys.Date(), " drdid_vs_linear_figure_3level.pdf"),
       plot = drdid_vs_linear_figure,
       device = "pdf",
       width = 9,
@@ -120,9 +120,26 @@ for (is_three_level in c(FALSE,TRUE)) {
     )
   } else {
     ggsave(
-      filename = paste0("Figures/", cfg$d, " drdid_vs_linear_figure_2level.pdf"),
+      filename = paste0("Figures/", Sys.Date(), " drdid_vs_linear_figure_2level.pdf"),
       plot = drdid_vs_linear_figure,
       device = "pdf",
+      width = 9,
+      height = 5
+    )
+  }
+  if (is_three_level) {
+    ggsave(
+      filename = paste0("Figures/", Sys.Date(), " drdid_vs_linear_figure_3level.eps"),
+      plot = drdid_vs_linear_figure,
+      device = "eps",
+      width = 9,
+      height = 4
+    )
+  } else {
+    ggsave(
+      filename = paste0("Figures/", Sys.Date(), " drdid_vs_linear_figure_2level.eps"),
+      plot = drdid_vs_linear_figure,
+      device = "eps",
       width = 9,
       height = 5
     )

@@ -49,3 +49,11 @@ ggsave(
   width = 9,
   height = 5
 )
+
+ggsave(
+  filename = paste0("Figures/", Sys.Date(), " analytical_variance_figure.eps"), 
+  plot = analytical_variance_figure, 
+  device = "eps",        
+  width = 9,             
+  height = 5,            
+)

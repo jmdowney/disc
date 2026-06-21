@@ -45,3 +45,10 @@ ggsave(
   width = 8,
   height = 5
 )
+ggsave(
+  filename = paste0("Figures/", Sys.Date(), " supp_fig_2.eps"),
+  plot = supp_fig_2,
+  device = "eps",
+  width = 8,
+  height = 5
+)

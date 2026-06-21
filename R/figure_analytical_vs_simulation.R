@@ -75,6 +75,14 @@ ggsave(
   height = 5
 )
 
+ggsave(
+  filename = paste0("Figures/", Sys.Date(), " analytical_vs_simulation_figure_linear.eps"),
+  plot = analytical_vs_simulation_figure_linear,
+  device = "eps",
+  width = 9,
+  height = 5
+)
+
 # Supplemental figures for appendix
 (supp_fig_1 <- df_full %>%
     mutate(
@@ -101,6 +109,13 @@ ggsave(
   filename = paste0("Figures/", cfg$d, " supp_fig_1.pdf"),
   plot = supp_fig_1,
   device = "pdf",
+  width = 9,
+  height = 7
+)
+ggsave(
+  filename = paste0("Figures/", Sys.Date(), " supp_fig_1.eps"),
+  plot = supp_fig_1,
+  device = "eps",
   width = 9,
   height = 7
 )

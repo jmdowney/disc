@@ -11,7 +11,7 @@ loc_data <- read_dta("RD01-03 ACDIS BoundedStructures.dta") %>%
 hh_data <- read_csv("RD06-99 ACDIS HSE-H All/RD06-99 ACDIS HSE-H All.csv")
 all_data <- hh_data %>% 
   left_join(loc_data, by = "BSIntId")
-setwd("/Users/jordandowney/hybrid-cluster-sampling-simulation")
+setwd("/Users/jordandowney/01. Projects/hybrid-cluster-sampling-simulation")
 
 # EDA ==========================================================================
 
@@ -239,9 +239,17 @@ df_long <- results %>%
   theme_minimal())
 
 ggsave(
-  filename = paste0("Figures/", "2025-12-03 disc_rcs_ahri.pdf"),
+  filename = paste0("Figures/", Sys.Date(), "disc_rcs_ahri.pdf"),
   plot = disc_rcs_ahri,
   device = "pdf",
+  width = 9,
+  height = 5
+)
+
+ggsave(
+  filename = paste0("Figures/", Sys.Date(), "disc_rcs_ahri.tif"),
+  plot = disc_rcs_ahri,
+  device = "tif",
   width = 9,
   height = 5
 )

@@ -142,3 +142,11 @@ ggsave(
   width = 9,
   height = 5
 )
+
+ggsave(
+  filename = paste0("Figures/", Sys.Date(), " design_plot.tif"),
+  plot = p_combined,
+  device = "tif",
+  width = 9,
+  height = 5
+)
